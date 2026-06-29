@@ -1,0 +1,7 @@
+node_modules
+.env
+artifacts/mobile/android/local.properties
+artifacts/mobile/dist/
+temp_extract/
+scrollio.tar.gz
+*.tar.gz

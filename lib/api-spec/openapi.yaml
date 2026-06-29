@@ -1,0 +1,534 @@
+openapi: 3.1.0
+info:
+  # Do not change the title, if the title changes, the import paths will be broken
+  title: Api
+  version: 0.1.0
+  description: Scroll.io API - digital wellness tracker for reels/shorts
+servers:
+  - url: /api
+    description: Base API path
+tags:
+  - name: health
+    description: Health operations
+  - name: users
+    description: User profile operations
+  - name: sessions
+    description: Auth sessions
+  - name: stats
+    description: Usage statistics
+  - name: leaderboard
+    description: Global leaderboard
+  - name: leetcode
+    description: LeetCode integration
+  - name: blocking
+    description: App blocking
+
+paths:
+  /healthz:
+    get:
+      operationId: healthCheck
+      tags: [health]
+      summary: Health check
+      responses:
+        "200":
+          description: Healthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"
+
+  /auth/register:
+    post:
+      operationId: register
+      tags: [sessions]
+      summary: Register a new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegisterInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+        "409":
+          description: Username taken
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /auth/login:
+    post:
+      operationId: login
+      tags: [sessions]
+      summary: Log in
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginInput"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+        "401":
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /users/me:
+    get:
+      operationId: getMe
+      tags: [users]
+      summary: Get current user profile
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserProfile"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    patch:
+      operationId: updateMe
+      tags: [users]
+      summary: Update current user profile
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserUpdate"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserProfile"
+
+  /users/{userId}/profile:
+    get:
+      operationId: getUserProfile
+      tags: [users]
+      summary: Get public profile card for a user
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PublicProfile"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /stats/today:
+    get:
+      operationId: getTodayStats
+      tags: [stats]
+      summary: Get today's usage stats for current user
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DailyStats"
+    post:
+      operationId: syncStats
+      tags: [stats]
+      summary: Sync usage stats from device
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/StatsInput"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DailyStats"
+
+  /stats/history:
+    get:
+      operationId: getStatsHistory
+      tags: [stats]
+      summary: Get stats history for last 30 days
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/DailyStats"
+
+  /leaderboard:
+    get:
+      operationId: getLeaderboard
+      tags: [leaderboard]
+      summary: Get global leaderboard
+      parameters:
+        - name: metric
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [streak, reelsBlocked, timeSaved]
+            default: streak
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 50
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/LeaderboardEntry"
+
+  /leetcode/verify:
+    post:
+      operationId: verifyLeetcode
+      tags: [leetcode]
+      summary: Verify LeetCode solves for today to unlock blocked apps
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LeetcodeVerifyInput"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LeetcodeVerifyResponse"
+
+  /leetcode/status:
+    get:
+      operationId: getLeetcodeStatus
+      tags: [leetcode]
+      summary: Get today's LeetCode unlock status
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LeetcodeStatus"
+
+  /blocking/status:
+    get:
+      operationId: getBlockingStatus
+      tags: [blocking]
+      summary: Get current blocking status for apps
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BlockingStatus"
+    post:
+      operationId: updateBlockingStatus
+      tags: [blocking]
+      summary: Update blocking status for apps
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BlockingStatusInput"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BlockingStatus"
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    HealthStatus:
+      type: object
+      properties:
+        status:
+          type: string
+      required:
+        - status
+
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+      required:
+        - error
+
+    RegisterInput:
+      type: object
+      required: [username, password, displayName]
+      properties:
+        username:
+          type: string
+          minLength: 3
+        password:
+          type: string
+          minLength: 6
+        displayName:
+          type: string
+
+    LoginInput:
+      type: object
+      required: [username, password]
+      properties:
+        username:
+          type: string
+        password:
+          type: string
+
+    AuthResponse:
+      type: object
+      required: [token, user]
+      properties:
+        token:
+          type: string
+        user:
+          $ref: "#/components/schemas/UserProfile"
+
+    UserProfile:
+      type: object
+      required: [id, username, displayName, createdAt]
+      properties:
+        id:
+          type: integer
+        username:
+          type: string
+        displayName:
+          type: string
+        bio:
+          type: ["string", "null"]
+        leetcodeUsername:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+          format: date-time
+        totalReelsSeen:
+          type: integer
+        totalMinutesWatched:
+          type: integer
+        currentStreak:
+          type: integer
+        bestStreak:
+          type: integer
+        totalDaysBlocked:
+          type: integer
+
+    UserUpdate:
+      type: object
+      properties:
+        displayName:
+          type: string
+        bio:
+          type: string
+        leetcodeUsername:
+          type: string
+
+    PublicProfile:
+      type: object
+      required: [id, username, displayName, createdAt]
+      properties:
+        id:
+          type: integer
+        username:
+          type: string
+        displayName:
+          type: string
+        bio:
+          type: ["string", "null"]
+        totalReelsSeen:
+          type: integer
+        totalMinutesWatched:
+          type: integer
+        currentStreak:
+          type: integer
+        bestStreak:
+          type: integer
+        totalDaysBlocked:
+          type: integer
+        rank:
+          type: integer
+
+    DailyStats:
+      type: object
+      required: [date, reelsSeen, minutesWatched, instagramReels, youtubeShorts]
+      properties:
+        date:
+          type: string
+          format: date
+        reelsSeen:
+          type: integer
+        minutesWatched:
+          type: integer
+        instagramReels:
+          type: integer
+        youtubeShorts:
+          type: integer
+        appsBlocked:
+          type: boolean
+        unlockedByLeetcode:
+          type: boolean
+
+    StatsInput:
+      type: object
+      required: [date, reelsSeen, minutesWatched, instagramReels, youtubeShorts]
+      properties:
+        date:
+          type: string
+          format: date
+        reelsSeen:
+          type: integer
+        minutesWatched:
+          type: integer
+        instagramReels:
+          type: integer
+        youtubeShorts:
+          type: integer
+
+    LeaderboardEntry:
+      type: object
+      required: [rank, userId, username, displayName, value]
+      properties:
+        rank:
+          type: integer
+        userId:
+          type: integer
+        username:
+          type: string
+        displayName:
+          type: string
+        value:
+          type: integer
+        currentStreak:
+          type: integer
+
+    LeetcodeVerifyInput:
+      type: object
+      required: [leetcodeUsername]
+      properties:
+        leetcodeUsername:
+          type: string
+
+    LeetcodeVerifyResponse:
+      type: object
+      required: [verified, solvedToday, unlockedApps]
+      properties:
+        verified:
+          type: boolean
+        solvedToday:
+          type: integer
+        unlockedApps:
+          type: boolean
+        message:
+          type: string
+
+    LeetcodeStatus:
+      type: object
+      required: [verified, solvedToday, unlockedApps, requiredSolves]
+      properties:
+        verified:
+          type: boolean
+        solvedToday:
+          type: integer
+        unlockedApps:
+          type: boolean
+        requiredSolves:
+          type: integer
+        leetcodeUsername:
+          type: ["string", "null"]
+
+    BlockingStatus:
+      type: object
+      required: [instagramBlocked, youtubeBlocked, blockingEnabled]
+      properties:
+        instagramBlocked:
+          type: boolean
+        youtubeBlocked:
+          type: boolean
+        blockingEnabled:
+          type: boolean
+        unlockedUntil:
+          type: ["string", "null"]
+          format: date-time
+
+    BlockingStatusInput:
+      type: object
+      required: [blockingEnabled]
+      properties:
+        blockingEnabled:
+          type: boolean
+        instagramBlocked:
+          type: boolean
+        youtubeBlocked:
+          type: boolean

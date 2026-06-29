@@ -1,0 +1,57 @@
+{
+  "expo": {
+    "name": "Scroll.io",
+    "slug": "scrollio",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/images/icon.png",
+    "scheme": "mobile",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/images/icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#f7fdf3"
+    },
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.scrollio.app"
+    },
+    "android": {
+      "package": "com.scrollio.app",
+      "permissions": [
+        "SYSTEM_ALERT_WINDOW",
+        "PACKAGE_USAGE_STATS",
+        "BIND_ACCESSIBILITY_SERVICE",
+        "FOREGROUND_SERVICE",
+        "RECEIVE_BOOT_COMPLETED"
+      ],
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/images/icon.png",
+        "backgroundColor": "#f7fdf3"
+      }
+    },
+    "web": {
+      "favicon": "./assets/images/icon.png"
+    },
+    "plugins": [
+      [
+        "expo-router",
+        {
+          "origin": "https://replit.com/"
+        }
+      ],
+      "expo-font",
+      "expo-web-browser"
+    ],
+    "experiments": {
+      "typedRoutes": true,
+      "reactCompiler": true
+    },
+    "extra": {
+      "eas": {
+        "projectId": "5f9882d5-e827-47a6-acac-38d622ad19bb"
+      }
+    }
+  }
+}
