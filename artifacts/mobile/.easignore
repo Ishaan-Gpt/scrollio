@@ -34,3 +34,15 @@ yarn-error.*
 .vercel
 
 .env
+
+# Native generated/build artifacts — keep the android/ & ios/ project sources (so our
+# build.gradle fix is used) but never upload local-machine build state or SDK paths.
+# EAS compiles these fresh on the build server.
+android/local.properties
+android/.gradle/
+android/.kotlin/
+android/build/
+android/app/build/
+**/.cxx/
+ios/build/
+ios/Pods/
