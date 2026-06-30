@@ -34,7 +34,7 @@ def shortRootDir = new File(rootDir.getAbsolutePath().replace("Ishaan GPT", "ISH
     // Replace react block entry file resolving with Windows short path aware version
     if (contents.includes("entryFile = file(")) {
       contents = contents.replace(
-        /entryFile = file\(.*resolveAppEntry.*?\)/,
+        /entryFile = file\(.*/,
         `entryFile = file(["node", "-e", "require('expo/scripts/resolveAppEntry')", projectRoot, "android", "absolute"].execute(null, shortRootDir).text.trim().replace("Ishaan GPT", "ISHAAN~1"))`
       );
     }
